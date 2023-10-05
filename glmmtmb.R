@@ -7,9 +7,13 @@ for(package in pkg) {
 
 set.seed(21450)
 
+## parameters for the bivariate Normal distribution
+# Number of cells per group
 n <- 30
+# mu
 mu <- c(0, 1, 2, 3, 3.8)
 mu2 <- c(0.1, 0.2, 0.3, 0.4, 0.5)
+# Variance-Covariance matrix
 Sigma <- matrix(0.8, nrow = 5, ncol = 5); diag(Sigma) <- 1
 Sigma2 <- matrix(0.1, nrow = 5, ncol = 5); diag(Sigma2) <- 1
 Sigma3 <- matrix(c(1, .8, .6, .4, .2,
@@ -17,6 +21,8 @@ Sigma3 <- matrix(c(1, .8, .6, .4, .2,
                  .6, .8, 1, .8, .6,
                  .4, .6, .8, 1, .8,
                  .2, .4, .6, .8, 1), nrow = 5, ncol = 5); print(Sigma3)
+
+## Multivariate Normal distributions
 Data <- mvrnorm(n = n, mu = mu, Sigma = Sigma)
 Datab <- mvrnorm(n = n, mu = mu2, Sigma = Sigma)
 Data2 <- mvrnorm(n = n, mu = mu, Sigma = Sigma2)
@@ -24,21 +30,24 @@ Data2b <- mvrnorm(n = n, mu = mu2, Sigma = Sigma2)
 Data3 <- mvrnorm(n = n, mu = mu, Sigma = Sigma3)
 Data3b <- mvrnorm(n = n, mu = mu2, Sigma = Sigma3)
 
+## Pearson
 cor <- sapply(list(Data, Data2, Data3), 
               function(data) rcorr(data))
-
 cor[, 1]
 cor[, 2]
 cor[, 3]
 
+# Merge
 Data <- rbind(Data, Datab)
 Data2 <- rbind(Data2, Data2b)
 Data3 <- rbind(Data3, Data3b)
 
 rm(Datab, Data2b, Data3b)
 
+# Number of observations 
 ID <- 1:sum(n,n)
 
+# merge              
 Data <- cbind(ID, Data)
 Data2 <- cbind(ID, Data2)
 Data3 <- cbind(ID, Data3)
@@ -66,7 +75,7 @@ Data2 <- melt(data = Data2, id.vars = c("ID", "Group"),
 Data3 <- melt(data = Data3, id.vars = c("ID", "Group"), 
               measure.vars = c("Time1", "Time2", "Time3", "Time4", "Time5"),
               variable.name = "Time", value.name = "DV")
-
+## Factors
 Data$Time <- as.factor(Data$Time)
 Data$Group <- as.factor(Data$Group)
 Data$ID <- as.factor(Data$ID)
@@ -179,7 +188,6 @@ summary(Model2c)
 Anova(Model2c, type = 'III', test.statistic = "Chisq")
 
 rm(Model1, Model2, Model3, Model4, VarC, Vcov)
-
 
 Model1 <- glmmTMB(DV ~ Group + Time + Group:Time + us(0 + Time|ID), data = Data3,
                   control = glmmTMBControl(optimizer=nlminb),
